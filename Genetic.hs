@@ -39,3 +39,14 @@ sumItems [] [] _ = 0
 sumItems (x:xs) (y:ys) f
     | x == 1 = f y + sumItems xs ys f
     | otherwise = sumItems xs ys f
+
+generateChromosome :: RandomGen g => Int -> g -> Chromosome
+generateChromosome n randomGen = Chromosome gene fitness
+    where gene = take n $ randomRs (0, 1) randomGen
+          fitness = calcFitness gene
+
+startPopulation :: RandomGen g => Int -> g -> [Chromosome]
+startPopulation 0 _ = []
+startPopulation n randomGen = generateChromosome chromosomeSize randomGen : startPopulation (n - 1) randomGen'
+    where chromosomeSize = length items
+          randomGen' = snd $ next randomGen
