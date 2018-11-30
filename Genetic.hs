@@ -53,7 +53,6 @@ startPopulation n randomGen = generateChromosome chromosomeSize randomGen : star
 
 mutation :: RandomGen g => Chromosome -> g -> Chromosome
 mutation c randomGen = Chromosome mutated f
--- mutation c randomGen = rnd
     where gn = gene c
           mutated = invertBit gn rnd
           rnd = fst(randomR (0, length gn) randomGen)
