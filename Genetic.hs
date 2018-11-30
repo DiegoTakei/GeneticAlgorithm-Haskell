@@ -50,3 +50,17 @@ startPopulation 0 _ = []
 startPopulation n randomGen = generateChromosome chromosomeSize randomGen : startPopulation (n - 1) randomGen'
     where chromosomeSize = length items
           randomGen' = snd $ next randomGen
+
+mutation :: RandomGen g => Chromosome -> g -> Chromosome
+mutation c randomGen = Chromosome mutated f
+-- mutation c randomGen = rnd
+    where gn = gene c
+          mutated = invertBit gn rnd
+          rnd = fst(randomR (0, length gn) randomGen)
+          f = calcFitness mutated
+
+invertBit :: [Int] -> Int -> [Int]
+invertBit (x:xs) n
+    | n == 0 && x == 1 = [0] ++ xs
+    | n == 0 && x == 0 = [1] ++ xs
+    | otherwise = [x] ++ invertBit xs (n-1)
