@@ -1,4 +1,8 @@
-module Genetic ()
+module Genetic (
+    Chromosome (),
+    Item (..),
+    startPopulation
+)
     where
 
 import System.Random
