@@ -11,7 +11,7 @@ import Data.List
 data Chromosome = Chromosome {
     gene :: [Int],
     fitness :: Int
-} deriving (Show)
+} deriving (Show, Eq)
 
 data Item = Item {
     -- name :: String????
@@ -21,16 +21,6 @@ data Item = Item {
 
 bag = 50
 items = [Item 5 10, Item 30 100, Item 10 5, Item 1 10, Item 40 110, Item 45 100]
-
-crossover :: Chromosome -> Chromosome -> [Chromosome]
-crossover x y = [Chromosome c1 f1, Chromosome c2 f2]
-    where gx = gene x
-          gy = gene y
-          i = length gx `div` 3
-          c1 = take i gx ++ drop i gy
-          c2 = take i gy ++ drop i gx
-          f1 = calcFitness c1
-          f2 = calcFitness c2
 
 calcFitness :: [Int] -> Int
 calcFitness gene
@@ -50,12 +40,37 @@ generateChromosome n randomGen = Chromosome gene fitness
     where gene = take n $ randomRs (0, 1) randomGen
           fitness = calcFitness gene
 
-
 startPopulation :: RandomGen g => Int -> g -> [Chromosome]
 startPopulation 0 _ = []
 startPopulation n randomGen = generateChromosome chromosomeSize randomGen : startPopulation (n - 1) randomGen'
     where chromosomeSize = length items
           randomGen' = snd $ next randomGen
+
+getBestFitness :: [Chromosome] -> Chromosome
+getBestFitness (x:[]) = x
+getBestFitness (x:xs)
+    | fx > fm = x
+    | otherwise = maxi
+    where maxi = getBestFitness xs
+          fx = fitness x
+          fm = fitness maxi
+
+runGA :: RandomGen g => [Chromosome] -> Int -> g -> [Chromosome]
+runGA p 0 _ = p
+runGA p n g = runGA newP (n-1) newG
+    where newG = snd (next g)
+          newP = newPopulation p g
+
+newPopulation :: RandomGen g => [Chromosome] -> g -> [Chromosome]
+newPopulation cs randomGen = children ++ rest
+    where selectedChromosome = tournament (selectChromosomes cs randomGen)
+          rest = cs \\ selectedChromosome
+          children = applyMutation n (makeCrossover selectedChromosome) randomGen
+          n = length cs `div` 100
+
+applyMutation :: RandomGen g =>  Int -> [Chromosome] -> g -> [Chromosome]
+applyMutation 0 cs _ = cs
+applyMutation n (x:xs) randomGen = [mutation x randomGen] ++ applyMutation (n-1) xs randomGen
 
 mutation :: RandomGen g => Chromosome -> g -> Chromosome
 mutation c randomGen = Chromosome mutated f
@@ -71,14 +86,32 @@ invertBit (x:xs) n
     | n == 0 && x == 0 = [1] ++ xs
     | otherwise = [x] ++ invertBit xs (n-1)
 
--- makeCrossover :: RandomGen g => [Chromosome] -> g -> [Chromosome]
--- makeCrossover cs randomGen = 
-    -- pegar os selecionados pra crossover
-    -- fazer o crossover neles por pares (como na funcao teste, se sobrar 1 nao faz crossover)
-    -- seleciona 1 pra fazer mutacao, pode ser o primeiro, por exemplo
+makeCrossover :: [Chromosome] -> [Chromosome]
+makeCrossover [] = []
+makeCrossover (c:[]) = [c]
+makeCrossover (c1:c2:cs) = crossover c1 c2 ++ makeCrossover cs
 
-selectToCrossover :: RandomGen g => [Chromosome] -> g -> [Chromosome]
-selectToCrossover cs randomGen = selectFromList cs i
+crossover :: Chromosome -> Chromosome -> [Chromosome]
+crossover x y = [Chromosome c1 f1, Chromosome c2 f2]
+    where gx = gene x
+          gy = gene y
+          i = length gx `div` 3
+          c1 = take i gx ++ drop i gy
+          c2 = take i gy ++ drop i gx
+          f1 = calcFitness c1
+          f2 = calcFitness c2
+
+tournament :: [Chromosome] -> [Chromosome]
+tournament [] = []
+tournament (c:[]) = [c]
+tournament (c1:c2:cs)
+    | f1 >= f2 = [c1] ++ tournament cs
+    | otherwise = [c2] ++ tournament cs
+    where f1 = fitness c1
+          f2 = fitness c2
+
+selectChromosomes :: RandomGen g => [Chromosome] -> g -> [Chromosome]
+selectChromosomes cs randomGen = selectFromList cs i
     where l = length cs
           n = l `div` 3
           i = take n (nub (randomRs (0, (l-1)) randomGen))
@@ -86,7 +119,3 @@ selectToCrossover cs randomGen = selectFromList cs i
 selectFromList :: [Chromosome] -> [Int] -> [Chromosome]
 selectFromList _ [] = []
 selectFromList cs (x:xs) = [cs !! x] ++ selectFromList cs xs
-
-teste :: [Int] -> [Int]
-teste (x:[]) = [10]
-teste (x:y:xs) = [x, y]
