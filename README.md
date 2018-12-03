@@ -30,3 +30,5 @@ $ ghci Front.hs
 <p align="center">
   <img src="https://i.imgur.com/xd2jYkZ.png" alt="mochilinha" height="200"/>
 </p>
+
+###### [fonte da imagem](https://pt.pngtree.com/freepng/cartoon-pink-satchel_3312232.html)
