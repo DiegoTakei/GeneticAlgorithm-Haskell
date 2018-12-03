@@ -18,7 +18,6 @@ data Chromosome = Chromosome {
 } deriving (Show, Eq)
 
 data Item = Item {
-    -- name :: String????
     weight :: Int,
     value :: Int
 } deriving (Show)
@@ -27,9 +26,6 @@ data Result = Result {
     fit :: Int,
     itemList :: [Item]
 } deriving (Show)
-
-bag = 50
-items = [Item 5 10, Item 30 100, Item 10 5, Item 1 10, Item 40 110, Item 45 100]
 
 calcFitness :: [Int] -> Int -> [Item] -> Int
 calcFitness gene bag items
@@ -130,15 +126,14 @@ selectFromList :: [Chromosome] -> [Int] -> [Chromosome]
 selectFromList _ [] = []
 selectFromList cs (x:xs) = [cs !! x] ++ selectFromList cs xs
 
-chromosomeToResult :: Chromosome -> Result
-chromosomeToResult c = Result f i
-    where i = geneToItens g
+chromosomeToResult :: Chromosome -> [Item] -> Result
+chromosomeToResult c items = Result f i
+    where i = geneToItens g items
           g = gene c
           f = fitness c
 
-geneToItens :: [Int] -> [Item]
-geneToItens []  = []
-geneToItens (x:xs)
-    | x == 1 = [items !! n] ++ geneToItens xs
-    | otherwise = [] ++ geneToItens xs
-    where n = (length items) - (length (x:xs))
+geneToItens :: [Int] -> [Item] -> [Item]
+geneToItens [] [] = []
+geneToItens (x:xs) (y:ys)
+    | x == 1 = y : geneToItens xs ys
+    | otherwise = geneToItens xs ys

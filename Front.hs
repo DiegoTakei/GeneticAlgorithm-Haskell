@@ -73,11 +73,12 @@ formatSpan title variable = do
         br
 
 runAlgorithm :: Int -> [(Int, Int)] -> Int -> Int -> Result
-runAlgorithm bagSize items populationSize generations = chromosomeToResult $ getBestFitness $ runGA population generations bagSize convertedItems randomGen
+runAlgorithm bagSize items populationSize generations = chromosomeToResult solution convertedItems
     where randomGen = mkStdGen 1231232
           tupleToItems (x, y) = Item x y
           convertedItems = Prelude.map tupleToItems items
           population = startPopulation populationSize bagSize convertedItems randomGen
+          solution = getBestFitness $ runGA population generations bagSize convertedItems randomGen
 
 render = S.html . renderHtml
 convert = read . unpack
